@@ -1,19 +1,105 @@
-# React + Vite
+# Weather App 🌤️
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+A responsive weather application built with **React.js** and **WeatherAPI** that provides real-time weather information for searched locations.
 
-Currently, two official plugins are available:
+## 🚀 Features
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+* Search weather by city/location
+* Real-time weather data using WeatherAPI
+* Current temperature and weather conditions
+* Wind speed and direction
+* Humidity and visibility information
+* UV index and air quality information
+* Atmospheric pressure
+* Weather-based visual icons
+* Responsive design for different screen sizes
 
-## React Compiler
+## 🛠️ Technologies Used
 
-The React Compiler is enabled on this template. See [this documentation](https://react.dev/learn/react-compiler) for more information.
+* React.js
+* JavaScript
+* HTML5
+* CSS3
+* Vite
+* WeatherAPI
+* Git & GitHub
 
-Note: This will impact Vite dev & build performances.
-You can also try [the experimental native React Compiler support in plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react/README.md#rust-react-compiler) by using `compiler: true` in the plugin options instead of using the Babel plugin.
+## 📂 Project Structure
 
-## Expanding the ESLint configuration
+```text
+src/
+├── pages/
+│   └── weather-app/
+│       ├── WeatherApp.jsx
+│       └── WeatherApp.css
+├── App.jsx
+├── App.css
+├── index.css
+└── main.jsx
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+public/
+└── assests/
+    └── images/
+```
+
+## ⚙️ Installation & Setup
+
+Clone the repository:
+
+```bash
+git clone https://github.com/QasimImdad/weather-app.git
+```
+
+Navigate to the project folder:
+
+```bash
+cd weather-app
+```
+
+Install dependencies:
+
+```bash
+npm install
+```
+
+Create a `.env` file in the project root and add your WeatherAPI key:
+
+```env
+VITE_WEATHER_API_KEY=your_api_key_here
+```
+
+Start the development server:
+
+```bash
+npm run dev
+```
+
+The application will be available on the local development server provided by Vite.
+
+## 🔐 Environment Variables
+
+The WeatherAPI key is stored in an environment variable and is **not included in the repository**.
+
+See `.env.example` for the required environment variable format.
+
+## 📸 Project Preview
+
+Add screenshots of the application here to show the interface and weather information.
+
+## 📌 Purpose
+
+This project was developed as a practical React.js project to strengthen my skills in:
+
+* React components
+* API integration
+* Fetching and displaying real-time data
+* State management
+* Responsive UI development
+* Environment variables
+* Git and GitHub workflow
+
+## 👨‍💻 Author
+
+**Muhammad Qasim**
+
+GitHub: [QasimImdad](https://github.com/QasimImdad)
