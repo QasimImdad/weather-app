@@ -38,6 +38,8 @@ body {
   justify-content: center;
   padding: 2rem 1rem;
   background-color: var(--bg-main);
+  overflow-x: hidden;
+  width: 100%;
 }
 
 .weather-dashboard-container {
@@ -46,15 +48,16 @@ body {
   margin: 0 auto;
 }
 
-.weather-dashboard-container > .row {
+.weather-dashboard-container>.row {
   display: grid;
   grid-template-columns: minmax(280px, 1fr) minmax(0, 2.4fr);
   gap: 1.5rem;
 }
 
-.weather-dashboard-container > .row > [class*="col-"] {
+.weather-dashboard-container>.row>[class*="col-"] {
   width: auto;
-  max-width: none;
+  max-width: 100%;
+  min-width: 0;
   padding-left: 0;
   padding-right: 0;
 }
@@ -80,6 +83,9 @@ body {
   flex-direction: column;
   gap: 1.75rem;
   box-shadow: 0 12px 32px rgba(0, 0, 0, 0.4);
+  min-width: 0;
+  max-width: 100%;
+  overflow-x: hidden;
 }
 
 /* Sidebar Search Bar */
@@ -302,8 +308,10 @@ body {
 /* Weekly Cards Grid */
 .weekly-cards-grid {
   display: grid;
-  grid-template-columns: repeat(7, 1fr);
+  grid-template-columns: repeat(7, minmax(0, 1fr));
   gap: 0.75rem;
+  width: 100%;
+  max-width: 100%;
 }
 
 .weekly-card {
@@ -350,12 +358,17 @@ body {
   color: var(--text-main);
 }
 
-/* True Hourly Scrollable Grid for 24 Hours */
+/* True Hourly Scrollable Grid for 24 Hours (Today tab) */
 .hourly-scroll-grid {
   display: flex;
   gap: 0.75rem;
   overflow-x: auto;
+  overflow-y: hidden;
+  width: 100%;
+  max-width: 100%;
   padding-bottom: 0.75rem;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior-x: contain;
   scrollbar-width: thin;
   scrollbar-color: var(--card-hover) transparent;
 }
@@ -433,8 +446,10 @@ body {
 /* Overview Grid Top (3 Stat Cards) */
 .overview-grid-top {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 1.1rem;
+  width: 100%;
+  max-width: 100%;
 }
 
 .overview-stat-card {
@@ -494,8 +509,10 @@ body {
 /* Overview Grid Bottom (Precipitation & Sun) */
 .overview-grid-bottom {
   display: grid;
-  grid-template-columns: 1.75fr 1fr;
+  grid-template-columns: minmax(0, 1.75fr) minmax(0, 1fr);
   gap: 1.1rem;
+  width: 100%;
+  max-width: 100%;
 }
 
 .precip-card {
@@ -519,6 +536,13 @@ body {
   width: 100%;
   height: 120px;
   position: relative;
+  min-width: 0;
+  overflow: hidden;
+}
+
+.precip-card>.d-flex {
+  flex-wrap: wrap;
+  gap: 0.5rem;
 }
 
 .sun-card {
@@ -567,30 +591,42 @@ body {
   margin-top: 1px;
 }
 
+/* Shared horizontal scroll styling (Today hourly + Week on small screens) */
+.forecast-scroll-row {
+  scrollbar-width: thin;
+  scrollbar-color: var(--card-hover) transparent;
+}
+
+.forecast-scroll-row::-webkit-scrollbar {
+  height: 6px;
+}
+
+.forecast-scroll-row::-webkit-scrollbar-thumb {
+  background: var(--card-hover);
+  border-radius: 10px;
+}
+
 /* Responsive Media Queries */
 @media (max-width: 991.98px) {
-  .weather-dashboard-container > .row {
+  .weather-dashboard-container>.row {
     grid-template-columns: 1fr;
   }
 
   .weather-dashboard-wrapper {
-    padding: 1rem 0.5rem;
+    padding: 1rem 0.75rem;
+    align-items: flex-start;
   }
 
   .sidebar-panel {
-    margin-bottom: 1.5rem;
+    margin-bottom: 0;
   }
 
   .weekly-cards-grid {
-    grid-template-columns: repeat(4, 1fr);
-  }
-
-  .weekly-card:nth-child(n+5) {
-    margin-top: 0.5rem;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
   }
 
   .overview-grid-top {
-    grid-template-columns: repeat(3, 1fr);
+    grid-template-columns: repeat(3, minmax(0, 1fr));
   }
 
   .overview-grid-bottom {
@@ -600,14 +636,39 @@ body {
 
 @media (max-width: 767.98px) {
   .main-panel {
-    padding: 1.5rem;
+    padding: 1.5rem 1.25rem;
   }
 
+  .nav-tabs-wrapper {
+    gap: 1.5rem;
+  }
+
+  .tab-item {
+    font-size: 1.15rem;
+  }
+
+  /* Week tab: single-row horizontal scroll (matches desktop layout) */
   .weekly-cards-grid {
-    grid-template-columns: repeat(3, 1fr);
+    display: flex;
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    overflow-y: hidden;
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior-x: contain;
+    padding-bottom: 0.75rem;
+  }
+
+  .weekly-cards-grid .weekly-card {
+    flex: 0 0 auto;
+    min-width: 92px;
+    width: 92px;
   }
 
   .overview-grid-top {
+    grid-template-columns: 1fr;
+  }
+
+  .overview-grid-bottom {
     grid-template-columns: 1fr;
   }
 
@@ -615,13 +676,58 @@ body {
     font-size: 3.5rem;
   }
 
+  .temp-display span {
+    font-size: 2rem;
+  }
+
   .stat-card-value {
     font-size: 2.5rem;
+  }
+
+  .city-day-row {
+    flex-wrap: wrap;
+    gap: 0.35rem;
+    font-size: 1.05rem;
+  }
+
+  .main-weather-img {
+    width: 160px;
+    height: 160px;
   }
 }
 
 @media (max-width: 480px) {
-  .weekly-cards-grid {
-    grid-template-columns: repeat(2, 1fr);
+  .weather-dashboard-wrapper {
+    padding: 0.75rem 0.5rem;
+  }
+
+  .sidebar-panel,
+  .main-panel {
+    border-radius: 22px;
+    padding: 1.25rem 1rem;
+  }
+
+  .search-btn {
+    padding: 0.65rem 0.75rem;
+    font-size: 0.8rem;
+  }
+
+  .hourly-card {
+    min-width: 90px;
+  }
+
+  .weekly-cards-grid .weekly-card {
+    min-width: 86px;
+    width: 86px;
+    height: 170px;
+  }
+
+  .precip-value-badge {
+    font-size: 0.75rem;
+    line-height: 1.35;
+  }
+
+  .overview-header {
+    font-size: 1.2rem;
   }
 }

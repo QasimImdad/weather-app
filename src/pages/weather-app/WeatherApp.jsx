@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import "bootstrap/dist/css/bootstrap.min.css";
 import "bootstrap-icons/font/bootstrap-icons.css";
 import "./WeatherApp.css";
@@ -117,7 +117,6 @@ const getCustomWeatherIcon = (conditionText, iconUrl = "", isDay = 1) => {
 function WeatherApp() {
   // --- STATE VARIABLES ---
   const [searchInput, setSearchInput] = useState("");
-  const [currentCity, setCurrentCity] = useState("Lahore");
   const [activeTab, setActiveTab] = useState("Week");
   const [weatherData, setWeatherData] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -150,7 +149,6 @@ function WeatherApp() {
       }
 
       setWeatherData(data);
-      setCurrentCity(data.location.name);
       setIsLoading(false);
     } catch (err) {
       console.error("Fetch weather error:", err);
@@ -160,7 +158,9 @@ function WeatherApp() {
   };
 
   useEffect(() => {
-    fetchWeather(currentCity);
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- mount-once weather load
+    void fetchWeather("Lahore");
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- run once on mount
   }, []);
 
   const handleSearchSubmit = (e) => {
@@ -175,6 +175,13 @@ function WeatherApp() {
   const getDayName = (dateStr) => {
     const date = new Date(dateStr);
     return date.toLocaleDateString("en-US", { weekday: "short" });
+  };
+
+  const getWeekdayFromLocaltime = (localtime) => {
+    if (!localtime) return "";
+    return new Date(localtime.replace(" ", "T")).toLocaleDateString("en-US", {
+      weekday: "long",
+    });
   };
 
   const formatHourTime = (timeStr) => {
@@ -207,14 +214,18 @@ function WeatherApp() {
   const todayForecast = forecastDays[0] || {};
   const airQuality = current?.air_quality;
 
-  // Determine current hour index based on city local time or system time
+  // Determine current hour index from city local time matched to API hour entries
   const getCurrentHourIndex = () => {
-    if (location?.localtime) {
-      const parts = location.localtime.split(" ");
-      if (parts[1]) {
-        const hourNum = parseInt(parts[1].split(":")[0], 10);
-        if (!isNaN(hourNum)) return hourNum;
-      }
+    const hours = forecastDays[0]?.hour || [];
+    if (location?.localtime && hours.length > 0) {
+      const localHourKey = location.localtime.slice(0, 13);
+      const matchedIndex = hours.findIndex(
+        (h) => h.time && h.time.slice(0, 13) === localHourKey
+      );
+      if (matchedIndex >= 0) return matchedIndex;
+
+      const hourNum = parseInt(location.localtime.split(" ")[1]?.split(":")[0], 10);
+      if (!isNaN(hourNum) && hourNum >= 0 && hourNum < hours.length) return hourNum;
     }
     return new Date().getHours();
   };
@@ -240,7 +251,8 @@ function WeatherApp() {
 
     const startX = 45;
     const endX = 410;
-    const stepX = (endX - startX) / (chartHours.length - 1);
+    const stepX =
+      chartHours.length > 1 ? (endX - startX) / (chartHours.length - 1) : 0;
 
     const points = chartHours.map((h, i) => {
       const chance = h.chance_of_rain || 0;
@@ -264,7 +276,7 @@ function WeatherApp() {
   return (
     <div className="weather-dashboard-wrapper">
       <div className="container-fluid weather-dashboard-container">
-        
+
         {/* ERROR BANNER */}
         {errorMsg && (
           <div className="alert alert-danger alert-dismissible fade show mb-4 text-center" role="alert">
@@ -284,7 +296,7 @@ function WeatherApp() {
         ) : (
           /* MAIN DASHBOARD CONTENT MATCHING DESIGN */
           <div className="row g-4">
-            
+
             {/* LEFT SIDEBAR PANEL */}
             <div className="col-12 col-lg-4 col-xl-3.5">
               <div className="sidebar-panel">
@@ -322,9 +334,7 @@ function WeatherApp() {
                   {/* City and Day Row */}
                   <div className="city-day-row">
                     <span>{location?.name || "Lahore"}</span>
-                    <span>
-                      {new Date(location?.localtime || Date.now()).toLocaleDateString("en-US", { weekday: "long" })}
-                    </span>
+                    <span>{getWeekdayFromLocaltime(location?.localtime)}</span>
                   </div>
 
                   {/* Weather Details List */}
@@ -372,19 +382,37 @@ function WeatherApp() {
             {/* RIGHT MAIN OVERVIEW PANEL */}
             <div className="col-12 col-lg-8 col-xl-8.5">
               <div className="main-panel">
-                
+
                 {/* Top Navigation Tabs */}
-                <div className="nav-tabs-wrapper">
+                <div className="nav-tabs-wrapper" role="tablist" aria-label="Forecast range">
                   <span
+                    role="tab"
+                    aria-selected={activeTab === "Today"}
+                    tabIndex={0}
                     className={`tab-item ${activeTab === "Today" ? "active" : "inactive"}`}
                     onClick={() => setActiveTab("Today")}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter" || e.key === " ") {
+                        e.preventDefault();
+                        setActiveTab("Today");
+                      }
+                    }}
                   >
                     Today
                     {activeTab === "Today" && <WavyUnderline />}
                   </span>
                   <span
+                    role="tab"
+                    aria-selected={activeTab === "Week"}
+                    tabIndex={0}
                     className={`tab-item ${activeTab === "Week" ? "active" : "inactive"}`}
                     onClick={() => setActiveTab("Week")}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter" || e.key === " ") {
+                        e.preventDefault();
+                        setActiveTab("Week");
+                      }
+                    }}
                   >
                     Week
                     {activeTab === "Week" && <WavyUnderline />}
@@ -394,9 +422,13 @@ function WeatherApp() {
                 {/* Forecast Grid Cards */}
                 {activeTab === "Week" ? (
                   /* 7-DAY FORECAST VIEW */
-                  <div className="weekly-cards-grid">
+                  <div
+                    className="weekly-cards-grid forecast-scroll-row"
+                    role="tabpanel"
+                    aria-label="Weekly forecast"
+                  >
                     {forecastDays.map((item, index) => (
-                      <div className="weekly-card" key={index}>
+                      <div className="weekly-card" key={item.date || index}>
                         <span className="weekly-card-day">
                           {index === 0 ? "Today" : getDayName(item.date)}
                         </span>
@@ -411,25 +443,36 @@ function WeatherApp() {
                   </div>
                 ) : (
                   /* HOURLY FORECAST STARTING FROM CURRENT HOUR ("NOW") */
-                  <div className="hourly-scroll-grid">
-                    {upcoming24Hours.map((item, index) => {
-                      const isNow = index === 0;
-                      return (
-                        <div className={`weekly-card hourly-card ${isNow ? "now-card" : ""}`} key={index}>
-                          <span className="weekly-card-day">{isNow ? "Now" : formatHourTime(item.time)}</span>
-                          <img
-                            src={getCustomWeatherIcon(item.condition?.text, item.condition?.icon, item.is_day)}
-                            alt={item.condition?.text}
-                            className="weekly-card-img"
-                          />
-                          <span className="weekly-card-temp">{Math.round(item.temp_c)}°</span>
-                          <div className="hourly-humidity-badge">
-                            <img src="/assests/images/water.png" alt="Humidity" className="humidity-icon-img" />
-                            <span>{item.humidity !== undefined ? item.humidity : item.chance_of_rain}%</span>
+                  <div
+                    className="hourly-scroll-grid forecast-scroll-row"
+                    role="tabpanel"
+                    aria-label="Today hourly forecast"
+                  >
+                    {upcoming24Hours.length > 0 ? (
+                      upcoming24Hours.map((item, index) => {
+                        const isNow = index === 0;
+                        return (
+                          <div
+                            className={`weekly-card hourly-card ${isNow ? "now-card" : ""}`}
+                            key={item.time || index}
+                          >
+                            <span className="weekly-card-day">{isNow ? "Now" : formatHourTime(item.time)}</span>
+                            <img
+                              src={getCustomWeatherIcon(item.condition?.text, item.condition?.icon, item.is_day)}
+                              alt={item.condition?.text}
+                              className="weekly-card-img"
+                            />
+                            <span className="weekly-card-temp">{Math.round(item.temp_c)}°</span>
+                            <div className="hourly-humidity-badge">
+                              <img src="/assests/images/water.png" alt="Humidity" className="humidity-icon-img" />
+                              <span>{item.humidity !== undefined ? item.humidity : item.chance_of_rain}%</span>
+                            </div>
                           </div>
-                        </div>
-                      );
-                    })}
+                        );
+                      })
+                    ) : (
+                      <p className="text-muted mb-0 px-2">Hourly forecast is unavailable for this location.</p>
+                    )}
                   </div>
                 )}
 
@@ -438,7 +481,7 @@ function WeatherApp() {
 
                 {/* Overview Cards Row 1 (Air Quality, UV, Pressure) */}
                 <div className="overview-grid-top">
-                  
+
                   {/* Air Quality Index Card */}
                   <div className="overview-stat-card">
                     <span className="stat-card-title">Air Quality Index</span>
@@ -478,7 +521,7 @@ function WeatherApp() {
 
                 {/* Overview Cards Row 2 (Precipitation & Sun Schedule) */}
                 <div className="overview-grid-bottom">
-                  
+
                   {/* Precipitation Card */}
                   <div className="precip-card">
                     <div className="d-flex justify-content-between align-items-center">
